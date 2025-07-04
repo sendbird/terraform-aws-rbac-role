@@ -19,14 +19,15 @@ data "aws_iam_policy_document" "trustrel" {
     }
   }
 
-  statement {
-    effect  = "Allow"
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    dynamic "principals" {
-      for_each = { for k, v in var.principals : k => v if contains(["federated"], k) }
-      content {
-        type        = lower(principals.key) == "federated" ? "Federated" : title(principals.key)
-        identifiers = principals.value
+
+  dynamic "statement" {
+    for_each = { for k, v in var.principals : k => v if contains(["federated"], k) }
+    content {
+      effect  = "Allow"
+      actions = ["sts:AssumeRoleWithWebIdentity"]
+      principals {
+        type        = title(statement.key)
+        identifiers = statement.value
       }
     }
   }
